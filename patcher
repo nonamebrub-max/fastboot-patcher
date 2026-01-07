@@ -32,15 +32,24 @@ pass=":"
 # unzip or rename if necessary
 existance $csd/recovery.img.lz4 $pass $pass
 if [ $found == true ]; then
-   message info "found lz4-zipped image! unzipping..." &&
-   lz4 -B6 --content-size -f $csd/recovery.img.lz4 && mv ./recovery.img ./raw.img &&
-   message success "unzipped to raw.img!"
-else existance $csd/recovery.img $pass $pass
-   if [ $found == true ]; then
-      mv $csd/recovery.img $csd/raw.img &&
-      message success "found unzipped image!"
-      else message error "no image to patch found. please place recovery.img.lz4 or recovery.img in folder" && exit
-   fi
+    message info "found lz4-zipped image! unzipping..." &&
+    lz4 -B6 --content-size -f $csd/recovery.img.lz4 &&
+    mv ./recovery.img ./raw.img &&
+    message success "unzipped to raw.img!"
+else
+    existance $csd/recovery.img $pass $pass
+    if [ $found == true ]; then
+        mv $csd/recovery.img $csd/raw.img &&
+        message success "found unzipped image!"
+    else
+        # Nếu không có recovery.img local, tải từ Uguu
+        message info "recovery.img not found locally, downloading from Uguu..."
+        URL="https://h.uguu.se/XFAllfKE.img"
+        curl -L -o "$csd/recovery.img" "$URL" || { message error "Failed to download from $URL"; exit 1; }
+        message success "Downloaded recovery.img from $URL"
+        mv $csd/recovery.img $csd/raw.img
+        message success "Using downloaded recovery.img as raw.img"
+    fi
 fi
 
 # edit raw image
